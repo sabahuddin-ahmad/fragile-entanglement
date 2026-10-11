@@ -1,101 +1,79 @@
-// Phase Detective: hidden phase, fixed shot budget, rising noise. Pick a probe, guess, score.
-import { bestChoice } from './theory.js';
-import { announce, fmt } from './a11y.js';
+import { announce } from './a11y.js';
+import { jumpOutcome, resolveSmash } from './game-model.js';
 
-const ROUNDS = [
-  { coherence: 1.0, hint: 'A calm, noise-free lab.' },
-  { coherence: 0.92, hint: 'A little noise creeps in.' },
-  { coherence: 0.82, hint: 'Noticeable noise.' },
-  { coherence: 0.72, hint: 'A noisy lab.' },
-  { coherence: 0.62, hint: 'Very noisy. Choose carefully.' },
-];
-const SHOTS = 300;
-const PHI_RANGE = 0.45; // |phi| * 6 < pi keeps every GHZ estimate unambiguous
-
-const score = (err) => Math.round(100 * Math.exp(-err / 0.02));
-
-/**
- * @param {HTMLElement} root
- * @param {{ runRound: (params) => Promise<object>, canRunJob: () => {ok: boolean, reason?: string}, nMax: number }} deps
- */
-export function initGame(root, { runRound, canRunJob, nMax }) {
-  const $ = (s) => root.querySelector(s);
-  const state = { round: 0, total: 0, phi: 0, busy: false };
-
-  const newRound = () => {
-    const r = ROUNDS[state.round];
-    state.phi = (Math.random() * 2 - 1) * PHI_RANGE;
-    $('[data-game="round"]').textContent = `Round ${state.round + 1} of ${ROUNDS.length}`;
-    $('[data-game="noise"]').textContent = `Coherence per qubit: ${Math.round(r.coherence * 100)}%. ${r.hint}`;
-    $('[data-game="result"]').hidden = true;
-    $('[data-game="guess"]').disabled = false;
-    $('[data-game="next"]').hidden = true;
+const NAMES = { product: 'Independent sensors', ghz: 'Entangled team' };
+export function initGame(root, { goTo }) {
+  const $ = (name) => root.querySelector(`[data-game="${name}"]`);
+  let session = null, round = 0, state = { anger: 0, score: 0 }, resolved = false;
+  const scoreboard = () => {
+    $('round').textContent = `Round ${round + 1} of ${session?.game.rounds.length ?? 12}`;
+    $('score').textContent = `${state.score} point${state.score === 1 ? '' : 's'}`;
+    $('anger').textContent = `Anger ${state.anger} / 10`;
+    $('meter').value = state.anger;
   };
-
-  const drawLine = (truth, est, dphi) => {
-    // Number line from -PHI_RANGE to +PHI_RANGE with truth and estimate ± dphi
-    const svg = $('[data-game="line"]');
-    const W = 600, pad = 30;
-    const x = (v) => pad + ((v + PHI_RANGE) / (2 * PHI_RANGE)) * (W - 2 * pad);
-    const lo = Math.max(est - dphi, -PHI_RANGE), hi = Math.min(est + dphi, PHI_RANGE);
-    svg.innerHTML = `
-      <line class="axis" x1="${pad}" x2="${W - pad}" y1="40" y2="40"/>
-      <rect class="band" x="${x(lo)}" y="30" width="${Math.max(x(hi) - x(lo), 2)}" height="20" rx="4"/>
-      <circle class="est" cx="${x(est)}" cy="40" r="6"/>
-      <path class="truth" d="M${x(truth)},20 l7,-12 h-14 Z"/>
-      <text x="${x(truth)}" y="62" text-anchor="middle" class="tick">true φ</text>
-      <text x="${pad}" y="80" class="tick">${-PHI_RANGE}</text>
-      <text x="${W - pad}" y="80" text-anchor="end" class="tick">${PHI_RANGE}</text>`;
-    svg.setAttribute('aria-label',
-      `True phase ${fmt(truth)} radians. Your estimate ${fmt(est)} plus or minus ${fmt(dphi)} radians.`);
-  };
-
-  $('[data-game="guess"]').addEventListener('click', async () => {
-    if (state.busy) return;
-    const gate = canRunJob();
-    if (!gate.ok) { $('[data-game="status"]').textContent = gate.reason; announce(gate.reason); return; }
-    const scheme = root.querySelector('input[name="game-scheme"]:checked').value;
-    const n = Number($('[data-game="n"]').value);
-    const { coherence } = ROUNDS[state.round];
-    state.busy = true;
-    $('[data-game="guess"]').disabled = true;
-    $('[data-game="status"]').textContent = 'Running your probe…';
-    try {
-      const r = await runRound({ scheme, n, shots: SHOTS, phi: state.phi, coherence });
-      const pts = score(r.error);
-      state.total += pts;
-      const best = bestChoice(state.phi, coherence, SHOTS, nMax);
-      drawLine(state.phi, r.phi_hat, r.dphi);
-      $('[data-game="result"]').hidden = false;
-      $('[data-game="summary"]').textContent =
-        `You estimated ${fmt(r.phi_hat)} ± ${fmt(r.dphi)} rad. True phase ${fmt(state.phi)} rad. `
-        + `Error ${fmt(r.error)} rad, ${pts} points (total ${state.total}).`;
-      $('[data-game="best"]').textContent =
-        `Theory's best probe here: ${best.scheme === 'ghz' ? 'entangled GHZ' : 'independent qubits'}, N = ${best.n} `
-        + `(expected ± ${fmt(best.dphi)} rad).`;
-      $('[data-game="status"]').textContent = '';
-      announce($('[data-game="summary"]').textContent);
-      const last = state.round === ROUNDS.length - 1;
-      const nextBtn = $('[data-game="next"]');
-      nextBtn.textContent = last ? 'Play again' : 'Next round';
-      nextBtn.hidden = false;
-      nextBtn.focus();
-    } catch (err) {
-      $('[data-game="status"]').textContent = `The run failed: ${err.message ?? err}`;
-      $('[data-game="guess"]').disabled = false;
-    } finally {
-      state.busy = false;
+  const prepare = () => {
+    resolved = false;
+    $('result').hidden = true;
+    $('reading').textContent = '';
+    $('counts').textContent = '';
+    $('smash').hidden = true;
+    $('hulk').setAttribute('transform', 'translate(110 230)');
+    $('mouth').setAttribute('d', 'M-8-77Q0-72 8-77');
+    $('stage').dataset.outcome = '';
+    $('stage').setAttribute('aria-label', 'Hulk waits at the start. The landing and phase reading are hidden until you commit.');
+    $('choices').disabled = !session;
+    $('commit').disabled = !session;
+    if (session) {
+      const c = session.game.rounds[round].coherence;
+      $('noise').textContent = `Wind / sensor noise: ${Math.round((1 - c) * 100)}% · coherence per qubit ${Math.round(c * 100)}%. The hidden push can be left or right.`;
+      $('status').textContent = 'Choose Independent or Entangled, then press SMASH. Hulk automatically corrects his jump using your chosen sensor. You cannot see the phase reading or landing in advance.';
     }
+    scoreboard();
+  };
+  $('commit').addEventListener('click', () => {
+    if (!session || resolved) return;
+    const scheme = root.querySelector('input[name="game-scheme"]:checked').value;
+    const current = session.game.rounds[round];
+    const reading = current.readings[scheme];
+    const outcome = jumpOutcome(current.phi, reading.phi_hat);
+    resolved = true;
+    state = resolveSmash(state, outcome.landed);
+    $('choices').disabled = true;
+    $('commit').disabled = true;
+    // Reveal only the final position: no predicted arc or flight trajectory.
+    const position = Math.max(35, Math.min(765, outcome.position));
+    $('hulk').setAttribute('transform', `translate(${position} 230)`);
+    $('mouth').setAttribute('d', outcome.landed ? 'M-9-80Q0-67 9-80' : 'M-9-74Q0-84 9-74');
+    $('stage').dataset.outcome = outcome.landed ? 'hit' : 'miss';
+    $('smash').hidden = !outcome.landed;
+    $('stage').setAttribute('aria-label', outcome.landed ? 'Hulk landed on the target. SMASH! Hulk is happy.' : 'Hulk missed the target and is angry.');
+    $('summary').textContent = outcome.landed ? 'SMASH! Hulk is happy. +1 point · anger −1.' : 'MISSED! Hulk is angry. Anger +3.';
+    const error = Math.abs(current.phi - reading.phi_hat);
+    $('reading').textContent = `${NAMES[scheme]} estimated ${reading.phi_hat.toFixed(3)} rad; hidden push ${current.phi.toFixed(3)} rad. Error ${error.toFixed(3)} rad; target tolerance ±0.050 rad.`;
+    $('lesson').textContent = reading.signal_lost
+        ? 'The measured signal is too weak for a reliable angle. A numerical uncertainty can be misleading when the signal disappears.'
+        : `Estimated phase uncertainty: ±${reading.dphi.toFixed(3)} rad (approximately one standard deviation). ${scheme === 'ghz' ? 'Entanglement magnifies the phase but is more fragile under this noise.' : 'Independent readings can be averaged without relying on one shared phase signal.'} A single result does not establish which sensor is best.`;
+    $('counts').textContent = `X measurement counts: ${JSON.stringify(reading.counts_x)}\nY measurement counts: ${JSON.stringify(reading.counts_y)}\n${session.game.shots} shots in each direction. Qiskit bitstrings list the highest-index bit first.`;
+    const finished = state.anger >= 10 || round === session.game.rounds.length - 1;
+    $('status').textContent = state.anger >= 10 ? `Game over: anger reached 10. Final score ${state.score}.`
+      : finished ? `You kept Hulk calm through all ${session.game.rounds.length} rounds! Final score ${state.score}.`
+        : 'Think about the noise and your sensor choice before the next round.';
+    $('next').textContent = finished ? 'Replay these recorded rounds' : 'Next round';
+    $('result').hidden = false;
+    scoreboard();
+    announce(`${$('summary').textContent} ${$('anger').textContent}. ${$('status').textContent}`);
   });
-
-  $('[data-game="next"]').addEventListener('click', () => {
-    if (state.round === ROUNDS.length - 1) {
-      announce(`Final score ${state.total} out of ${ROUNDS.length * 100}.`);
-      state.round = 0; state.total = 0;
-    } else state.round++;
-    newRound();
-    $('[data-game="round"]').focus();
+  $('next').addEventListener('click', () => {
+    if (!session || !resolved) return;
+    if (state.anger >= 10 || round === session.game.rounds.length - 1) {
+      round = 0; state = { anger: 0, score: 0 };
+    } else round++;
+    prepare(); $('round').focus();
   });
-
-  newRound();
+  $('explore').addEventListener('click', () => goTo('explore'));
+  prepare();
+  return { loadSession(data) {
+    session = data; round = 0; state = { anger: 0, score: 0 };
+    prepare();
+  } };
 }

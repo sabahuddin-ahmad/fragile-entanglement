@@ -1,6 +1,6 @@
 """Entry points called from main.js through Qollab's Python bridge.
 
-Conventions (see CLAUDE.md):
+Bridge conventions:
 * Every function takes and returns JSON *strings*. That sidesteps proxy
   conversion between Pyodide and JavaScript entirely.
 * Functions that touch the backend submit exactly ONE backend.run call,
@@ -13,10 +13,11 @@ from __future__ import annotations
 
 import json
 import math
+import random
 
 from qiskit import transpile
 
-from quantum.circuits import build_config, coherence_to_beta
+from quantum.circuits import build_config, coherence_to_beta, build_pair
 from quantum.estimate import estimate_point
 from quantum import theory
 
@@ -116,7 +117,7 @@ def run_sweep(backend, params_json: str | None = None) -> str:
 
 
 def run_round(backend, params_json: str) -> str:
-    """One Phase Detective guess: a single probe choice, one job."""
+    """One phase reading: a single probe choice, one job."""
     p = json.loads(params_json)
     scheme, n = p["scheme"], int(p["n"])
     shots, phi, c = int(p["shots"]), float(p["phi"]), float(p["coherence"])
@@ -156,3 +157,53 @@ def theory_curve(params_json: str | None = None) -> str:
             d = theory.expected_dphi(scheme, n, p["phi"], p["coherence"], p["shots"])
             out.append({"scheme": scheme, "n": n, "dphi_theory": None if math.isinf(d) else d})
     return json.dumps(out)
+
+
+def run_session(backend, params_json: str | None = None) -> str:
+    """Learn, twelve Hulk rounds, and an Explore sweep in ONE backend job.
+
+    Each game round and advice choice gets separate circuits. Stored counts
+    are reused only when the learner explicitly replays the same session.
+    """
+    p = _params(params_json)
+    if not 100 <= p["shots"] <= 4096 or not 1 <= p["n_max"] <= 6:
+        raise ValueError("Use 100–4096 shots and 1–6 Explore qubits")
+    if not 0 <= p["coherence"] <= 1 or not math.isfinite(p["phi"]):
+        raise ValueError("Invalid noise or phase")
+    circuits, pairs, rounds, configs = [], [], [], []
+    for kind in ("independent", "entangled", "matching"):
+        for basis in ("z", "x"):
+            pairs.append((kind, basis, len(circuits)))
+            circuits.append(build_pair(kind, basis))
+    rng = random.SystemRandom()
+    for c in (1, .8, .6, .9, .7, .6, 1, .7, .9, .6, .8, .7):
+        phi = rng.uniform(-.4, .4)  # inside the unambiguous GHZ n=3 interval
+        readings = {}
+        for scheme in ("product", "ghz"):
+            readings[scheme] = len(circuits)
+            circuits.extend(build_config(scheme, 3, phi, coherence_to_beta(c)))
+        rounds.append({"phi": phi, "coherence": c, "readings": readings})
+    for scheme in ("product", "ghz"):
+        for n in range(1, p["n_max"] + 1):
+            configs.append((scheme, n, len(circuits)))
+            circuits.extend(build_config(scheme, n, p["phi"], coherence_to_beta(p["coherence"])))
+    counts = _run_once(backend, circuits, p["shots"])
+    learn = [{"kind": kind, "basis": basis, "shots": p["shots"],
+              "counts": {bits.replace(" ", "").zfill(2)[::-1]: int(value)
+                         for bits, value in counts[i].items()}}
+             for kind, basis, i in pairs]
+    for round_ in rounds:
+        for scheme, i in round_["readings"].items():
+            point = estimate_point(scheme, 3, counts[i], counts[i+1])
+            point["scheme"] = scheme
+            point["counts_x"], point["counts_y"] = counts[i], counts[i+1]
+            _with_theory(point, round_["phi"], round_["coherence"], p["shots"])
+            round_["readings"][scheme] = point
+    points = [_with_theory(estimate_point(scheme, n, counts[i], counts[i+1]),
+                           p["phi"], p["coherence"], p["shots"])
+              for scheme, n, i in configs]
+    name = _backend_name(backend)
+    return json.dumps({"kind": "session", "source": "live", "backend": name,
+                       "shots": p["shots"], "learn": learn,
+                       "game": {"rounds": rounds, "n": 3, "shots": p["shots"]},
+                       "sweep": {"source": "live", "backend": name, "params": p, "points": points}})

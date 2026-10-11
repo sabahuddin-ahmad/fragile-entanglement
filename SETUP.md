@@ -89,6 +89,14 @@ page as the entry point: it loads the interface and supplies the mock bridge
 that replaces Qollab's Python integration locally. Its live runs use simulated
 JavaScript results, rather than executing the Python circuits.
 
+The preview opens on Intro, followed by Learn, Hulk Smash and Explore. Press **Run quantum experiment** to load mock counts, then start Learn or play **Hulk Smash**.
+Choose Independent (unentangled) or Entangled, then press SMASH. A hit earns a point
+and lowers anger by 1; a miss adds 3. Anger at 10 ends the game; survive all
+12 rounds to win. Replaying uses the same recorded results.
+
+**Localhost is a UI preview, not a quantum backend.** On Qollab the same button submits actual Qiskit circuits to the selected simulator or hardware backend.
+One job supplies Learn, all game rounds, and an initial Explore sweep. Additional Explore runs use the selected settings and share the backend's job allowance.
+
 To preview the application's IonQ one-job restriction, open
 <http://localhost:8000/dev/preview.html?ionq&backend=ionq_simulator>.
 

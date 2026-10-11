@@ -125,3 +125,52 @@ def build_probe(scheme: str, n: int, phi: float, beta: float = 0.0, quadrature: 
 def build_config(scheme: str, n: int, phi: float, beta: float = 0.0) -> list[QuantumCircuit]:
     """The X and Y circuits for one (scheme, n) point, in that order."""
     return [build_probe(scheme, n, phi, beta, quad) for quad in QUADRATURES]
+
+
+def build_pair(kind: str, basis: str) -> QuantumCircuit:
+    """Measure a Bell pair or separable comparisons; environments are traced out.
+
+    Independent comparison is I/4; matching is (|00><00|+|11><11|)/2.
+    Returned classical bit 0 is the left particle.
+    """
+    if kind not in ("independent", "matching", "entangled") or basis not in ("z", "x"):
+        raise ValueError("Unknown pair preparation or basis")
+    qc = QuantumCircuit(4 if kind == "independent" else 3 if kind == "matching" else 2,
+                        2, name=f"pair_{kind}_{basis}")
+    if kind == "entangled":
+        qc.h(0)
+        qc.cx(0, 1)
+    else:
+        qc.h(2)
+        qc.cx(2, 0)
+        if kind == "matching":
+            qc.cx(2, 1)
+        else:
+            qc.h(3)
+            qc.cx(3, 1)
+    if basis == "x":
+        qc.h(0)
+        qc.h(1)
+    qc.measure([0, 1], [0, 1])
+    return qc
+
+
+def build_mixed_config(n: int, phi: float) -> list[QuantumCircuit]:
+    """Fully dephased GHZ: separable all-zero/all-one mixture, no phase signal.
+
+    An unmeasured environment stores the branch. This is one specific mixed
+    state, not a claim that all mixed states lack entanglement or sensitivity.
+    """
+    circuits = []
+    for quad in QUADRATURES:
+        qc = QuantumCircuit(n + 1, 1, name=f"mixed_n{n}_{quad}")
+        qc.h(n)
+        for q in range(n):
+            qc.cx(n, q)
+            qc.p(phi, q)
+        for q in reversed(range(1, n)):
+            qc.cx(q - 1, q)
+        _readout_basis(qc, [0], quad)
+        qc.measure(0, 0)
+        circuits.append(qc)
+    return circuits

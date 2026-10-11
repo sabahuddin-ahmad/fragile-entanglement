@@ -4,7 +4,7 @@
 // Encoding (identity is never color-alone):
 //   product  -> series-1 (blue),   circle markers,   label "Independent qubits"
 //   ghz      -> series-2 (orange), triangle markers, label "Entangled (GHZ)"
-//   theory   -> same hue, dashed line, no markers
+//   theory   -> same hue, dotted line, no markers
 //   optimum  -> vertical dotted rule + text label
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -72,7 +72,7 @@ export function renderChart(container, { points, nMax = 6, optimalN = null, show
   el('text', {
     x: 18, y: M.t + ih / 2, class: 'axis-label', 'text-anchor': 'middle',
     transform: `rotate(-90 18 ${M.t + ih / 2})`,
-  }, svg).textContent = 'Phase uncertainty Δφ (rad, log) — lower is better';
+  }, svg).textContent = 'Phase uncertainty Δφ (rad, log)';
 
   // Optimal-N rule
   if (optimalN) {

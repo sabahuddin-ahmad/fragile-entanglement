@@ -1,6 +1,6 @@
 // Fragile Entanglement — entry point.
 //
-// Qollab runtime facts this file relies on (see CLAUDE.md):
+// Qollab runtime facts this file relies on (Python bridge contract):
 // * `backend` is injected by Qollab from the Select QPU dialog. Never create one.
 // * Python modules are imported by dotted name and MUST be called with .callPromising.
 // * IonQ backends accept ONE job per run. jobGate() enforces that in the UI.
@@ -9,8 +9,8 @@
 
 import * as exp from 'quantum.experiment';
 import { renderChart, renderTable } from './ui/chart.js';
-import { initTabs, announce, fmt } from './ui/a11y.js';
-import { initTour } from './ui/tour.js';
+import { initTabs, announce } from './ui/a11y.js';
+import { initLearn } from './ui/tour.js';
 import { initGame } from './ui/game.js';
 import { optimalNGhz, expectedDphi } from './ui/theory.js';
 
@@ -20,6 +20,17 @@ const PHI = 0.2;
 
 const $ = (id) => document.getElementById(id);
 const py = async (fn, ...args) => JSON.parse(await fn.callPromising(...args));
+
+// Appearance stays in memory, matching Qollab's storage restrictions.
+function setTheme(theme) {
+  document.querySelector('.app').dataset.theme = theme;
+  document.documentElement.dataset.theme = theme;
+  $('theme-light').setAttribute('aria-pressed', String(theme === 'light'));
+  $('theme-dark').setAttribute('aria-pressed', String(theme === 'dark'));
+}
+setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+$('theme-light').addEventListener('click', () => setTheme('light'));
+$('theme-dark').addEventListener('click', () => setTheme('dark'));
 
 // ------------------------------------------------------------------ state
 const state = {
@@ -52,6 +63,7 @@ async function withJob(fn) {
   if (!gate.ok) throw new Error(gate.reason);
   state.busy = true;
   try {
+    updateRunButton();
     const out = await fn();
     state.jobsUsed++;
     return out;
@@ -89,8 +101,8 @@ function render() {
   renderTable($('data-table'), sweep.points);
 
   $('data-source').textContent = {
-    live: `Live result from ${sweep.backend}.`,
-    precomputed: `Precomputed result (${sweep.backend}). Press "Run on selected backend" for a live run.`,
+    live: 'Results ready',
+    precomputed: 'Stored results. Press "Run on selected backend" for a new run.',
     theory: 'Theory curves only (no stored result for this setting).',
   }[sweep.source] ?? '';
 
@@ -117,7 +129,13 @@ function updateRunButton() {
   const btn = $('run-live');
   btn.disabled = !gate.ok;
   btn.textContent = state.busy ? 'Running…' : state.info.is_ionq ? 'Run once on IonQ' : 'Run on selected backend';
-  if (!gate.ok && !state.busy) $('run-status').textContent = gate.reason;
+  const sessionButton = $('run-session');
+  sessionButton.disabled = !gate.ok;
+  sessionButton.textContent = state.busy ? 'Running quantum circuits…' : 'Run quantum experiment';
+  if (!gate.ok && !state.busy) {
+    $('run-status').textContent = gate.reason;
+    $('session-status').textContent = `${gate.reason} Loaded Learn and Game results remain available.`;
+  }
 }
 
 // ------------------------------------------------------------------ circuit viewer
@@ -139,23 +157,30 @@ async function renderCircuit() {
   $('circuit-steps').replaceChildren(...steps.map((s) => Object.assign(document.createElement('li'), { textContent: s })));
 }
 
-// ------------------------------------------------------------------ app API (used by the tour)
-const tabs = initTabs(document.querySelector('[role="tablist"]'), (name) => {
-  // The tour drives the Explore view, so keep Explore visible under it.
-  if (name === 'tour') { $('panel-explore').hidden = false; tour.start(); }
-});
+// ------------------------------------------------------------------ learning and navigation
+const tabs = initTabs(document.querySelector('[role="tablist"]'));
+const goTo = (tab) => { tabs.select(tab); $(`tab-${tab}`).focus(); };
+const learn = initLearn($('panel-learn'), { goTo, introRoot: $('panel-intro') });
+const game = initGame($('panel-game'), { goTo });
 
-const app = {
-  setCoherence(c) {
-    const i = COHERENCE_GRID.findIndex((g) => Math.abs(g - c) < 1e-9);
-    $('noise').value = String(i < 0 ? 0 : i);
+$('run-session').addEventListener('click', async () => {
+  const params = { shots: 400, coherence: 1, phi: PHI, n_max: N_MAX };
+  $('session-status').textContent = 'Running quantum experiment…';
+  try {
+    const session = await withJob(() => py(exp.run_session, backend, JSON.stringify(params)));
+    learn.loadSession(session);
+    game.loadSession(session);
+    state.live.set(key(400, 1), session.sweep);
+    state.shots = 400; state.coherence = 1;
+    $('shots').value = '400'; $('noise').value = '0';
     onNoise();
-  },
-  highlight(scheme) { state.highlight = scheme; render(); },
-  focusSlider() { $('noise').focus(); },
-  goTo(tab) { tabs.select(tab); document.getElementById(`tab-${tab}`).focus(); },
-};
-const tour = initTour($('panel-tour'), app);
+    $('session-status').textContent = 'Results ready';
+    announce('Measurement results ready. Start Learn or play Hulk Smash.');
+  } catch (err) {
+    $('session-status').textContent = `Experiment failed: ${err.message ?? err}. No new results were loaded.`;
+    announce($('session-status').textContent);
+  }
+});
 
 // ------------------------------------------------------------------ controls
 function onNoise() {
@@ -163,25 +188,29 @@ function onNoise() {
   const pct = Math.round(state.coherence * 100);
   const text = `Coherence per qubit: ${pct}%`;
   $('noise-out').textContent = text;
-  $('noise').setAttribute('aria-valuetext', `${text}${pct === 100 ? ', no noise' : ''}`);
+  $('noise').setAttribute('aria-valuetext', `${100 - pct}% noise. ${text}${pct === 100 ? ', no noise' : ''}`);
   render();
   renderCircuit();
 }
 $('noise').addEventListener('input', onNoise);
 $('shots').addEventListener('change', (e) => { state.shots = Number(e.target.value); render(); });
 $('show-theory').addEventListener('change', (e) => { state.showTheory = e.target.checked; render(); });
+$('show-data-table').addEventListener('change', (e) => {
+  $('data-table-panel').hidden = !e.target.checked;
+  $('data-table-toggle-state').textContent = e.target.checked ? 'On' : 'Off';
+});
 document.querySelectorAll('input[name="circ-scheme"]').forEach((r) => r.addEventListener('change', renderCircuit));
 $('circ-n').addEventListener('change', renderCircuit);
 
 $('run-live').addEventListener('click', async () => {
   const params = { coherence: state.coherence, shots: state.shots, phi: PHI, n_max: N_MAX };
-  $('run-status').textContent = `Sending one job (${2 * 2 * N_MAX} circuits) to ${state.info.name}…`;
+  $('run-status').textContent = 'Running experiment…';
   updateRunButton();
   try {
     const sweep = await withJob(() => py(exp.run_sweep, backend, JSON.stringify(params)));
     state.live.set(key(state.shots, state.coherence), sweep);
-    $('run-status').textContent = `Done on ${sweep.backend}.`;
-    announce(`Live run finished on ${sweep.backend}.`);
+    $('run-status').textContent = 'Results ready';
+    announce('Results ready');
     render();
   } catch (err) {
     $('run-status').textContent = `Run failed: ${err.message ?? err}`;
@@ -191,18 +220,14 @@ $('run-live').addEventListener('click', async () => {
 
 // ------------------------------------------------------------------ boot
 state.info = await py(exp.backend_info, backend);
-$('backend-status').textContent = state.info.is_ionq
-  ? `Backend: ${state.info.name}. IonQ allows one live job per run; everything else uses stored results.`
-  : `Backend: ${state.info.name}. Live runs are unlimited on this simulator.`;
+const backendLabel = state.info.is_preview || state.info.name === 'mock_local_simulator'
+  ? 'Local preview only'
+  : state.info.name;
+$('backend-status').textContent = `Selected backend: ${backendLabel}`;
+$('session-backend').textContent = `Selected backend: ${backendLabel}`;
 
 const pre = await py(exp.load_precomputed);
 for (const run of pre.runs ?? []) state.precomputed.set(key(run.params.shots, run.params.coherence), run);
-
-initGame($('panel-game'), {
-  nMax: N_MAX,
-  canRunJob: jobGate,
-  runRound: (params) => withJob(() => py(exp.run_round, backend, JSON.stringify(params))),
-});
 
 updateRunButton();
 onNoise();

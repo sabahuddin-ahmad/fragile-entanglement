@@ -28,7 +28,7 @@ export function optimalNGhz(c, nMax) {
   return bestN;
 }
 
-// Best probe for a Phase Detective round, by theory.
+// Best phase-sensing probe by theory (useful for comparisons).
 export function bestChoice(phi, c, shots, nMax) {
   let best = null;
   for (const scheme of ['product', 'ghz']) {

@@ -2,6 +2,8 @@
 // Stands in for the Python module `quantum.experiment` so the UI runs in a plain browser.
 // Results are theory + Gaussian shot noise, clearly labelled "mock".
 import { expectedDphi } from '../ui/theory.js';
+import { samplePair } from '../ui/entanglement.js';
+import { simulateReading } from '../ui/game-model.js';
 
 const wrap = (fn) => Object.assign(fn, { callPromising: (...a) => Promise.resolve(fn(...a)) });
 const gauss = () => Math.sqrt(-2 * Math.log(Math.random() || 1e-12)) * Math.cos(2 * Math.PI * Math.random());
@@ -17,7 +19,8 @@ function point(scheme, n, phi, c, shots) {
 }
 
 export const backend_info = wrap(() => JSON.stringify({
-  name: new URLSearchParams(location.search).get('backend') ?? 'mock_local_simulator',
+  is_preview: true,
+  name: new URLSearchParams(location.search).get('backend') ?? 'Local preview only',
   is_ionq: new URLSearchParams(location.search).has('ionq'),
   num_qubits: 24,
 }));
@@ -30,7 +33,7 @@ export const run_sweep = Object.assign(() => {}, {
     await delay(600);
     const points = [];
     for (const s of ['product', 'ghz']) for (let n = 1; n <= p.n_max; n++) points.push(point(s, n, p.phi, p.coherence, p.shots));
-    return JSON.stringify({ kind: 'sweep', source: 'live', backend: 'mock (local preview)', params: p, points });
+    return JSON.stringify({ kind: 'sweep', source: 'live', backend: 'Local preview only', params: p, points });
   },
 });
 
@@ -49,7 +52,38 @@ export const draw_circuit = wrap((paramsJson) => {
   for (let q = 0; q < p.n; q++) lines.push(`q_${q}: ─H─${p.scheme === 'ghz' && q ? '⊕' : '─'}─P(φ)─${noisy ? '■' : '─'}─H─M─`);
   if (noisy) for (let q = 0; q < p.n; q++) lines.push(`e_${q}: ─H────────■──────`);
   return JSON.stringify({
-    text: `(mock drawing — the real Qiskit text drawing appears on Qollab)\n${lines.join('\n')}`,
+    text: `(Local preview diagram — the Qiskit circuit diagram appears on Qollab)\n${lines.join('\n')}`,
     num_qubits: noisy ? 2 * p.n : p.n, depth: 0, ops: {},
   });
+});
+
+
+export const run_session = Object.assign(() => {}, {
+  callPromising: async (_backend, paramsJson) => {
+    const p = { phi: .2, coherence: 1, shots: 400, n_max: 6, ...JSON.parse(paramsJson) };
+    await delay(600);
+    const learn = [];
+    for (const kind of ['independent', 'entangled', 'matching']) {
+      for (const basis of ['z', 'x']) {
+        const counts = {};
+        for (let shot = 0; shot < p.shots; shot++) {
+          const bits = samplePair(kind, basis).join('');
+          counts[bits] = (counts[bits] ?? 0) + 1;
+        }
+        learn.push({ kind, basis, shots: p.shots, counts });
+      }
+    }
+    const rounds = [1, .8, .6, .9, .7, .6, 1, .7, .9, .6, .8, .7].map((coherence) => {
+      const phi = Math.random() * .8 - .4;
+      const readings = Object.fromEntries(['product', 'ghz'].map((scheme) =>
+        [scheme, simulateReading({ scheme, n: 3, phi, coherence, shots: p.shots })]));
+      return { phi, coherence, readings };
+    });
+    const points = [];
+    for (const scheme of ['product', 'ghz']) for (let n = 1; n <= p.n_max; n++) points.push(point(scheme, n, p.phi, p.coherence, p.shots));
+    const name = 'Local preview only';
+    return JSON.stringify({ kind: 'session', source: 'mock', backend: name, shots: p.shots, learn,
+      game: { n: 3, shots: p.shots, rounds },
+      sweep: { source: 'live', backend: name, params: p, points } });
+  },
 });

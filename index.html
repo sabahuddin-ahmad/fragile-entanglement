@@ -1,38 +1,193 @@
 <!-- Qollab inserts this inside the page body: no <html>/<head>/<body>, and <script> tags do not run. -->
 <div class="app">
   <header class="masthead">
-    <p class="eyebrow">Quantum Unlocked · interactive explainer</p>
+    <div class="masthead-top">
+      <p class="eyebrow">QUANTUM UNLOCKED | INTERACTIVE TUTORIAL &amp; GAME</p>
+      <div class="theme-toggle" role="group" aria-label="Appearance">
+        <button type="button" id="theme-light" aria-label="Light theme" aria-pressed="true" title="Light theme">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+        </button>
+        <button type="button" id="theme-dark" aria-label="Dark theme" aria-pressed="false" title="Dark theme">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.9 13.1A9 9 0 0 1 10.9 3.1 9 9 0 1 0 20.9 13.1Z"/></svg>
+        </button>
+      </div>
+    </div>
     <h1>Fragile Entanglement</h1>
-    <p class="lede">Why GHZ states beat independent qubits at phase estimation, until noise sets an optimal size.</p>
-    <p class="backend" id="backend-status" role="status">Connecting to the selected backend…</p>
-  </header>
+    <p class="lede">In this tutorial, you will learn about entanglement: how two quantum particles each give random answers on their own, yet show a shared pattern when measured together.</p>
+    <ol class="lede-steps">
+      <li><b>Learn</b>: Introduces entanglement through simple comparisons and measurement results. Compare independent particles with an entangled pair, see how their measurement results differ, and learn how they can detect a tiny change called phase.</li>
+      <li><b>Hulk Smash</b>: Use what you learned to help Hulk land on the target and SMAAAAAASSSSSH.</li>
+      <li><b>Explore</b>: Play with different noise and shot settings to observe how noise affects measurement precision.</li>
+    </ol>
+</header>
 
   <div class="tabs" role="tablist" aria-label="Sections">
-    <button role="tab" id="tab-explore" data-tab="explore" aria-controls="panel-explore" aria-selected="true">Explore</button>
-    <button role="tab" id="tab-tour" data-tab="tour" aria-controls="panel-tour" aria-selected="false" tabindex="-1">Guided tour</button>
-    <button role="tab" id="tab-game" data-tab="game" aria-controls="panel-game" aria-selected="false" tabindex="-1">Phase Detective</button>
-    <button role="tab" id="tab-about" data-tab="about" aria-controls="panel-about" aria-selected="false" tabindex="-1">How it works</button>
+    <button role="tab" id="tab-intro" data-tab="intro" aria-controls="panel-intro" aria-selected="true">Intro</button>
+    <button role="tab" id="tab-learn" data-tab="learn" aria-controls="panel-learn" aria-selected="false" tabindex="-1">Learn</button>
+    <button role="tab" id="tab-game" data-tab="game" aria-controls="panel-game" aria-selected="false" tabindex="-1">Hulk Smash</button>
+    <button role="tab" id="tab-explore" data-tab="explore" aria-controls="panel-explore" aria-selected="false" tabindex="-1">Explore</button>
   </div>
 
-  <!-- ===================== GUIDED TOUR (sits above Explore and drives it) ===================== -->
-  <section id="panel-tour" role="tabpanel" aria-labelledby="tab-tour" class="panel tour" hidden>
-    <p class="tour-count" data-tour="count"></p>
-    <h2 data-tour="title" tabindex="-1"></h2>
-    <p data-tour="body"></p>
+  <!-- ===================== INTRODUCTION ===================== -->
+  <section id="panel-intro" role="tabpanel" aria-labelledby="tab-intro" class="panel learn">
+    <div class="learn-welcome">
+      <h2>Introduction to Entanglement</h2>
+      <h3>What is a qubit?</h3>
+      <p>A <strong>qubit</strong>, short for <strong>quantum bit</strong>, is one unit of quantum information. It can be stored in a physical system such as an atom. A normal computer bit stores 0 or 1. When we measure a qubit, we also get one result: 0 or 1.</p>
+      <p>What makes a qubit different is how we can prepare it <em>before</em> measurement. It can be in a <strong>superposition</strong>: a quantum combination of its 0 and 1 states. This does not mean we read both answers at once. We still get just one answer each time; the preparation and measurement setting determine how likely each answer is. Repeating the experiment with newly prepared qubits reveals those probabilities.</p>
+      <h3>What will we learn about entanglement?</h3>
+      <p>Imagine two independently tossed coins. Knowing one result does not tell you the other. We begin with two <strong>independent qubits</strong> whose results behave that way. Then we compare them with an <strong>entangled pair</strong>: two qubits prepared in a shared quantum state. Each result can be random, while their results together follow a strong pattern.</p>
+      <p>Matching results alone do not explain entanglement. Two sealed envelopes can contain matching cards without anything quantum happening. In <b>Learn</b>, we compare ordinary matching with an entangled pair, then change the measurement setting while keeping the preparations unchanged. The counts of 00, 01, 10 and 11 show how these preparations respond differently. For example, 01 means the left qubit gave 0 and the right gave 1.</p>
+      <h3>How does this connect to Hulk Smash and Explore?</h3>
+      <p>Qubits can also act as sensors for a tiny change called <strong>phase</strong>—an angle within a repeating cycle, like the position of a clock hand. We estimate that angle from many measurement results. Entanglement can make the sensor more sensitive, but disturbance from the surroundings, called <strong>noise</strong>, can weaken the benefit.</p>
+      <p>In <strong>Hulk Smash</strong>, choose Independent or Entangled sensors to help Hulk correct his jump and land on a target. In <strong>Explore</strong>, compare measurement precision as you change the number of sensing qubits. Hulk Smash uses three sensing qubits; Explore compares one through six.</p>
+      <h3>Before you begin</h3>
+      <p>We need the measurement results from a Quantum Computer or a Simulator. Open this project in <strong>Qollab</strong>, press Qollab’s <strong>Run</strong>, and select a simulator or quantum hardware backend. Then press <strong>Run quantum experiment</strong> below. This prepares and measures the circuits used by the tutorial. Wait for the results to finish loading; once results have loaded, <strong>Start learning</strong> will unlock.</p>
+    </div>
+    <section class="session-bar" aria-label="Quantum experiment">
+      <div><strong>Run the experiment in Qollab</strong><p class="hint">Load the measured results before starting Learn. This run also supplies results for Hulk Smash and the initial Explore plot.</p></div>
+      <button type="button" class="primary" id="run-session">Run quantum experiment</button>
+      <p id="session-backend" class="hint">Connecting to Qollab ...</p>
+      <p id="session-status" role="status">Results have not been loaded. Run the quantum experiment to unlock Learn.</p>
+    </section>
+    <details class="quantum-source" id="run-explanation"><summary>What happens when I press Run quantum experiment?</summary>
+        <ol>
+          <li><strong>Qollab sends one batch to your selected backend.</strong> A simulator calculates the circuit outcomes on a classical computer. A hardware backend runs operations and measurements on physical qubits. The selected backend name appears below.</li>
+          <li><strong>Each circuit runs 400 times.</strong> Each repetition, called a shot, starts with freshly prepared qubits. We collect the resulting 0s and 1s into counts. There are 78 circuits in the batch.</li>
+          <li><strong>The results power all three views.</strong> Learn reveals the measured pair results. Hulk Smash uses phase estimates from its own measured circuits. Explore receives an initial comparison plot. Revealing a recorded result does not send another job.</li>
+          <li><strong>Learn unlocks after success.</strong> If the first run fails, the lessons remain locked until results load successfully. Returning to Intro later keeps your current lesson and results.</li>
+        </ol>
+        </p>
+        <p>On IonQ, this batch uses the one-job allowance for the current Qollab run. You can keep using the loaded results. To request a new batch, stop and restart the project in Qollab. Replaying a game uses its recorded results.</p>
+      </details>
+    <p class="hint" id="learn-unlock-status" role="status">Start learning becomes available after the experiment finishes successfully.</p>
+    <button type="button" class="primary" data-learn="start" disabled aria-describedby="learn-unlock-status">Start learning <span aria-hidden="true">→</span></button>
+  </section>
+
+  <!-- ===================== LEARN ===================== -->
+  <section id="panel-learn" role="tabpanel" aria-labelledby="tab-learn" class="panel learn" hidden>
+    <div data-learn="locked">
+      <h2>Run the experiment before starting Learn</h2>
+      <p>The lessons use recorded measurement results. Open Intro, read what the experiment does, and run it to load those results first.</p>
+      <button type="button" class="primary" data-learn="open-intro">Go to Intro</button>
+    </div>
+    <div data-learn="lesson" hidden>
+    <p class="tour-count" data-learn="count"></p>
+    <h2 data-learn="title" tabindex="-1"></h2>
+    <div class="lesson-copy" data-learn="body"></div>
+    <div class="entanglement-lab" data-learn="coins">
+      <div class="lab-heading"><div><p class="eyebrow">Try it yourself</p><h3>Two particles. What will they reveal?</h3></div><button type="button" data-pair="reset">Restart experiments</button></div>
+      <div class="pair-step-intro">
+        <p class="eyebrow" data-pair="step-count">Experiment 1 of 4</p>
+        <h4 data-pair="step-title" tabindex="-1">Start with independent particles</h4>
+        <div data-pair="step-body"></div>
+        <p class="pair-change" data-pair="change"></p>
+      </div>
+      <div class="pair-direction" aria-label="Current measurement direction"><span class="detector" aria-hidden="true">↑</span><strong data-pair="direction-label">First direction</strong></div>
+      <p class="hint" data-pair="direction-note">Each measurement uses a fresh pair. We keep the detectors in the same direction for the first three experiments.</p>
+      <div class="pair-comparisons">
+        <article class="pair-card" data-pair-kind="independent">
+          <p class="eyebrow">Independent particles</p><h4>Two individual stories</h4>
+          <div class="particle-pair"><div><span>Left</span><span class="particle" data-pair="a">?</span><span class="detector" aria-hidden="true">↑</span></div><span class="pair-link" aria-hidden="true"></span><div><span>Right</span><span class="particle" data-pair="b">?</span><span class="detector" aria-hidden="true">↑</span></div></div>
+          <p data-pair="explanation">Here each result is independently random. Learning the left result does not help you predict the right.</p>
+          <details class="measurement-counts"><summary>All measurement counts in this direction</summary><div data-pair="histogram"></div></details>
+          <p class="pair-baseline" data-pair="baseline" hidden></p>
+          <p class="pair-count" data-pair="count">No pairs measured yet</p><div class="pair-history" data-pair="history" aria-label="Recent independent-particle results"></div>
+        </article>
+        <article class="pair-card entangled-pair" data-pair-kind="entangled" hidden>
+          <p class="eyebrow">Entangled particles</p><h4>One shared quantum story</h4>
+          <div class="particle-pair"><div><span>Left</span><span class="particle" data-pair="a">?</span><span class="detector" aria-hidden="true">↑</span></div><span class="pair-link" aria-hidden="true"></span><div><span>Right</span><span class="particle" data-pair="b">?</span><span class="detector" aria-hidden="true">↑</span></div></div>
+          <p data-pair="explanation">For this ideal entangled pair, both measurement directions used here give matching results. Each individual result is still random.</p>
+          <details class="measurement-counts"><summary>All measurement counts in this direction</summary><div data-pair="histogram"></div></details>
+          <p class="pair-baseline" data-pair="baseline" hidden></p>
+          <p class="pair-count" data-pair="count">No pairs measured yet</p><div class="pair-history" data-pair="history" aria-label="Recent entangled-particle results"></div>
+        </article>
+        <article class="pair-card ordinary-pair" data-pair-kind="matching" hidden>
+          <p class="eyebrow">Prepared to match</p><h4>Agreement arranged in advance</h4>
+          <div class="particle-pair"><div><span>Left</span><span class="particle" data-pair="a">?</span><span class="detector" aria-hidden="true">↑</span></div><span class="pair-link" aria-hidden="true"></span><div><span>Right</span><span class="particle" data-pair="b">?</span><span class="detector" aria-hidden="true">↑</span></div></div>
+          <p data-pair="explanation">Imagine matching cards sealed in envelopes. Agreement can be arranged without entanglement. This comparison prepares either 00 or 11 at random.</p>
+          <details class="measurement-counts"><summary>All measurement counts in this direction</summary><div data-pair="histogram"></div></details>
+          <p class="pair-baseline" data-pair="baseline" hidden></p>
+          <p class="pair-count" data-pair="count">No pairs measured yet</p><div class="pair-history" data-pair="history" aria-label="Recent ordinary matching-pair results"></div>
+        </article>
+      </div>
+      <div class="row pair-actions">
+        <button type="button" class="primary" data-pair="measure" disabled>1. Reveal a left result</button>
+        <button type="button" data-pair="reveal" disabled>2. Reveal the right particle</button>
+        <button type="button" data-pair="batch" disabled>Reveal 20 recorded pairs</button>
+      </div>
+      <p class="pair-feedback" data-pair="feedback" role="status">Start by measuring the left particles. A question mark means the result has not been revealed.</p>
+      <div class="row pair-step-nav"><button type="button" data-pair="previous-step" disabled>Previous experiment</button><button type="button" class="primary" data-pair="next-step" disabled>Next: prepare an entangled pair</button></div>
+      <div class="pair-takeaway" data-pair="takeaway" hidden><h4>What changed—and what stayed the same?</h4><p>We kept the pair preparations the same and changed the measurement direction for fresh pairs. The ideal prediction: the arranged matching pair loses its agreement in the second direction, while the entangled pair keeps it. Compare that prediction with your backend’s counts. That is why matching once is not the whole quantum story.</p><p>Each entangled result was still random. Entanglement gives the pair a shared quantum pattern; it does not let you choose a result or send an instant message.</p></div>
+      <p class="hint">The ideal predictions may differ from a noisy backend’s counts. An entangled particle does not send a message to its partner, and you cannot choose its random result. Matching results in one direction alone do not establish entanglement.</p>
+      <details data-pair="technical" hidden><summary>A closer look at the ordinary matching comparison</summary><p>The envelopes are an analogy for an answer fixed in advance. In the quantum comparison, we prepare both particles as 0 or both as 1 in the first direction, with a random choice each time. We do not prepare a coherent combination of the two possibilities. Turning the detectors changes the measurement question; it does not turn those prepared particles into an entangled pair.</p><p>The ordinary comparison is a random mixture of 00 and 11 in the first direction. In the second direction, its outcomes become independent. The entangled pair used here keeps its agreement in both directions. This illustrates the difference between these prepared states; ruling out all ordinary hidden explanations needs a fuller experiment.</p><p>The independent particles here are independently and randomly prepared, so their results are unpredictable in both directions. The measurement sensors introduced in later lessons use a different preparation.</p></details>
+    </div>
     <div class="row">
-      <button type="button" data-tour="prev">Back</button>
-      <button type="button" class="primary" data-tour="next">Next</button>
+      <button type="button" data-learn="prev">Back</button>
+      <button type="button" class="primary" data-learn="next">Next</button>
+      <button type="button" data-learn="explore">Try Explore</button>
+    </div>
     </div>
   </section>
 
-  <!-- ===================== EXPLORE ===================== -->
-  <section id="panel-explore" role="tabpanel" aria-labelledby="tab-explore" class="panel">
-    <div class="controls" aria-label="Experiment controls" role="group">
-      <div class="control">
-        <label for="noise">Environment noise</label>
-        <input id="noise" type="range" min="0" max="8" step="1" value="0" aria-describedby="noise-out">
-        <output id="noise-out" for="noise">Coherence per qubit: 100%</output>
+  <!-- ===================== HULK SMASH ===================== -->
+  <section id="panel-game" role="tabpanel" aria-labelledby="tab-game" class="panel" hidden>
+    <p class="eyebrow">GAME</p>
+    <h2>Hulk Smash</h2>
+      <p>Hulk wants to jump onto the target and smash it, but he doesn't know exactly where it is. The target sits a hidden distance to the left or right of where he would normally land, so he may miss. Your job is to choose the quantum sensor that helps him locate the target and adjust his jump: <strong>Independent (unentangled)</strong> or <strong>Entangled</strong>. Then press <strong>SMASH</strong>. Hulk measures the target's position with your chosen sensor and corrects his jump by that reading.</p>
+      <div class="game-instructions">
+      <h3>What controls the landing?</h3>
+      <ul>
+        <li><strong>You choose the sensor.</strong> Independent uses three separate qubits that each sense the target's offset, and their readings are averaged. Entangled links three qubits into one shared state that amplifies the offset signal (the phase) three times, which makes it more precise but much more easily disrupted by noise.</li>
+        <li><strong>The round sets the noise.</strong> The displayed noise level tells you how much the sensor's signal is weakened. It does not move Hulk or the target, and it is not the chance of missing. Noise changes between rounds; you cannot adjust it.</li>
+        <li><strong>The target's offset is hidden.</strong> Its size and direction are encoded as a phase on the qubits. The sensor estimates it from quantum measurements.</li>
+        <li><strong>The reading decides the landing.</strong> Hulk shifts his jump by exactly the sensor's reading. A reading close to the true offset puts him on target; an inaccurate reading makes him miss. After the smash, you see the reading, the true offset, and their difference.</li>
+      </ul>
+      <p>Both options use three sensing qubits and the same number of measurement runs. A more precise sensor is more likely to land Hulk close to the target, but no single jump is guaranteed.</p>
       </div>
+    <p class="hint">SCORING: A hit earns 1 point and lowers anger by 1 (never below 0). A miss raises anger by 3. Anger at 10 ends the game. Keep Hulk calm through 12 rounds.</p>
+    <div class="game-scoreboard"><strong data-game="round" tabindex="-1">Round 1 of 12</strong><span data-game="score">0 points</span><strong data-game="anger">Anger 0 / 10</strong></div>
+    <progress class="anger-meter" data-game="meter" max="10" value="0" aria-label="Hulk anger"></progress>
+    <svg class="hulk-stage" data-game="stage" viewBox="0 0 800 300" role="img" aria-label="Hulk Smash waits on the left. A smash target stands on the right. The landing is hidden until you commit.">
+      <g class="smash-debris" aria-hidden="true"><path d="M530 202l-12-14m62 14 12-14m-52-3-4-16m34 16 4-16"/></g>
+      <path class="hulk-ground" d="M0 230H800V300H0Z"/>
+      <g class="hulk-target"><path d="M535 230V215H585V230Z"/><circle cx="560" cy="220" r="17"/><circle cx="560" cy="220" r="8"/></g>
+      <text x="560" y="190" text-anchor="middle" class="jump-label">SMASH HERE</text>
+      <g data-game="hulk" transform="translate(110 230)">
+        <path class="hulk-skin" d="M-24-67Q-55-75-57-45L-48-27-32-31-34-50-25-42H25L34-50 32-31 48-27 57-45Q55-75 24-67L18-75H-18Z"/>
+        <path class="hulk-pants" d="M-25-43H25L28-15H5L0-28-5-15H-28Z"/>
+        <path class="hulk-skin" d="M-26-16H-8V-3H-31V-9ZM8-16H26L31-9V-3H8Z"/>
+        <rect class="hulk-skin" x="-20" y="-107" width="40" height="37" rx="10"/>
+        <path class="hulk-hair" d="M-20-91V-106L-12-113 0-109 11-113 20-105V-91L11-99 2-96-8-101Z"/>
+        <path class="hulk-face" d="M-12-88H-5M5-88H12"/>
+        <path class="hulk-face" data-game="mouth" d="M-8-77Q0-72 8-77"/>
+      </g>
+      <text data-game="smash" class="smash-word" x="560" y="110" text-anchor="middle" hidden>SMASH!</text>
+    </svg>
+    <p class="wind-report" data-game="noise">Wind noise will appear after the experiment runs.</p>
+    <p class="hint">Noise here means how much of each qubit’s useful phase signal is lost. Every option uses the same number of sensing qubits and shots.</p>
+    <fieldset class="hulk-choices" data-game="choices" disabled><legend>Choose what Hulk should use. Each choice uses 3 sensing qubits.</legend>
+      <label><input type="radio" name="game-scheme" value="product" checked><strong>Independent (unentangled)</strong><span>Three independent sensors.</span></label>
+      <label><input type="radio" name="game-scheme" value="ghz"><strong>Entangled</strong><span>Amplifies the phase, but noise weakens it.</span></label>
+    </fieldset>
+    <button type="button" class="primary" data-game="commit" disabled>SMASH</button>
+    <p class="pair-feedback" data-game="status" role="status">Run the experiment to begin. No reading or landing path is shown before your decision.</p>
+    <div data-game="result" hidden><h3 data-game="summary"></h3><p data-game="reading"></p><p data-game="lesson"></p><details><summary>Inspect the recorded measurement counts</summary><pre data-game="counts"></pre></details><div class="row"><button type="button" class="primary" data-game="next">Next round</button><button type="button" data-game="explore">Compare sensors in Explore</button></div></div>
+    <details class="quantum-source">
+      <summary>How does the game connect to the experiment?</summary>
+      <p><strong>The hidden push is the phase we want to measure.</strong> In Learn, phase is a small angle that changes quantum measurement probabilities. Hulk Smash represents that angle as a sideways push. Hulk needs an accurate reading of the push to correct his jump.</p>
+      <p><strong>Your choice selects the quantum sensor.</strong> Independent uses three unentangled sensing qubits and averages their readings. Entangled uses three qubits in a shared state that magnifies the phase signal. Both options use the same number of sensing qubits and shots. Entanglement can help when noise is low, but its shared signal is more fragile as noise increases.</p>
+      <p><strong>Measurement results determine Hulk’s correction.</strong> Running the quantum experiment in Intro collects 0/1 counts from circuits measured in two settings. We combine these counts into a phase estimate for each sensor and round. When you press SMASH, Hulk automatically uses the estimate from your selected sensor. The reading stays hidden until you commit.</p>
+      <p><strong>A close estimate lands on target.</strong> Hulk hits when the estimate differs from the true phase by at most 0.05 radians. A larger difference makes him miss. The result shows both values so you can see why he landed where he did.</p>
+      <p><strong>Uncertainty explains reliability over many attempts.</strong> Smaller phase uncertainty means readings tend to cluster more tightly around the true angle. It does not guarantee a hit: a noisy sensor can get lucky once. Compare several rounds to understand the effect of noise and your sensor choice.</p>
+      <p>The jump is a game illustration; the sensor readings come from the experiment’s recorded results. Each round has its own measurements. Replay uses the same results; run the experiment again for new measurements.</p>
+    </details>
+  </section>
+
+  <!-- ===================== EXPLORE ===================== -->
+  <section id="panel-explore" role="tabpanel" aria-labelledby="tab-explore" class="panel" hidden>
+    <p class="hint">On Qollab, the run button executes Qiskit circuits on your selected simulator or hardware backend. The chart initially shows stored results. For IonQ simulators, run the quantum experiment in Intro first to populate all views.</p>
+    <div class="controls" aria-label="Experiment controls" role="group">
       <div class="control">
         <label for="shots">Shots per circuit</label>
         <select id="shots">
@@ -40,12 +195,20 @@
           <option value="400">400</option>
           <option value="1600" selected>1600</option>
         </select>
+        <label class="check theory-toggle"><input id="show-theory" type="checkbox" role="switch" checked> Show theory curves</label>
       </div>
       <div class="control">
-        <label class="check"><input id="show-theory" type="checkbox" checked> Show theory curves</label>
+        <label for="noise">Environment noise</label>
+        <div class="noise-range">
+          <span aria-hidden="true">0%</span>
+          <input id="noise" type="range" min="0" max="8" step="1" value="0" aria-describedby="noise-out">
+          <span aria-hidden="true">40%</span>
+        </div>
+        <output id="noise-out" for="noise">Coherence per qubit: 100%</output>
       </div>
-      <div class="control">
+      <div class="control run-control">
         <button type="button" id="run-live" class="primary">Run on selected backend</button>
+        <p class="backend" id="backend-status" role="status">Connecting to the selected backend…</p>
         <p id="run-status" class="hint" role="status"></p>
       </div>
     </div>
@@ -53,27 +216,34 @@
     <figure class="chart-wrap" id="chart">
       <figcaption>
         <h2 id="chart-title">Independent vs entangled: phase uncertainty vs number of qubits</h2>
-        <p id="chart-desc" class="hint">Independent qubits (blue circles) and an entangled GHZ state (orange triangles) estimate the same hidden phase. Lower is better. Dashed lines are theory.</p>
+        <p id="chart-desc" class="hint">Independent qubits (blue circles) and an entangled GHZ state (orange triangles) estimate the same hidden phase. Dotted lines show each probe’s theoretical uncertainty.</p>
         <p id="data-source" class="hint"></p>
       </figcaption>
       <ul class="legend" aria-label="Legend">
         <li><span class="swatch s-product" aria-hidden="true">●</span> Independent qubits</li>
         <li><span class="swatch s-ghz" aria-hidden="true">▲</span> Entangled (GHZ)</li>
-        <li><span class="swatch theory" aria-hidden="true">┄</span> Theory</li>
+        <li><span class="theory-key s-product" aria-hidden="true"></span> Independent theory</li>
+        <li><span class="theory-key s-ghz" aria-hidden="true"></span> Entangled (GHZ) theory</li>
       </ul>
       <div class="tooltip" hidden></div>
     </figure>
 
     <p id="insight" class="insight" aria-live="polite"></p>
 
-    <details class="table-view">
-      <summary>Show the data as a table</summary>
+
+
+    <label class="check theory-toggle table-toggle" for="show-data-table">
+      <input id="show-data-table" type="checkbox" role="switch" aria-controls="data-table-panel">
+      <span>Show data table</span>
+      <span id="data-table-toggle-state" class="toggle-state" aria-hidden="true">Off</span>
+    </label>
+    <div id="data-table-panel" class="table-view" role="region" aria-labelledby="data-table-caption" tabindex="0" hidden>
       <table>
-        <caption>Measured and predicted phase uncertainty</caption>
+        <caption id="data-table-caption">Measured and predicted phase uncertainty</caption>
         <thead><tr><th scope="col">Probe</th><th scope="col">N</th><th scope="col">Δφ measured</th><th scope="col">Δφ theory</th><th scope="col">Estimate φ̂</th><th scope="col">Signal lost</th></tr></thead>
         <tbody id="data-table"></tbody>
       </table>
-    </details>
+    </div>
 
     <section class="circuit-view" aria-labelledby="circuit-title">
       <h2 id="circuit-title">Look inside a circuit</h2>
@@ -92,44 +262,10 @@
     </section>
   </section>
 
-  <!-- ===================== PHASE DETECTIVE ===================== -->
-  <section id="panel-game" role="tabpanel" aria-labelledby="tab-game" class="panel" hidden>
-    <h2 data-game="round" tabindex="-1"></h2>
-    <p data-game="noise"></p>
-    <p class="hint">A phase is hidden somewhere between −0.45 and 0.45 rad. You have 300 shots. Pick your probe.</p>
-    <div class="row">
-      <fieldset class="inline">
-        <legend>Probe</legend>
-        <label><input type="radio" name="game-scheme" value="product" checked> Independent qubits</label>
-        <label><input type="radio" name="game-scheme" value="ghz"> Entangled (GHZ)</label>
-      </fieldset>
-      <label for="game-n">Qubits</label>
-      <select id="game-n" data-game="n"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select>
-      <button type="button" class="primary" data-game="guess">Measure and guess</button>
-    </div>
-    <p data-game="status" class="hint" role="status"></p>
-    <div data-game="result" hidden>
-      <svg data-game="line" viewBox="0 0 600 90" role="img" class="numberline"></svg>
-      <p data-game="summary"></p>
-      <p data-game="best" class="hint"></p>
-      <button type="button" data-game="next">Next round</button>
-    </div>
-  </section>
-
-  <!-- ===================== HOW IT WORKS ===================== -->
-  <section id="panel-about" role="tabpanel" aria-labelledby="tab-about" class="panel prose" hidden>
-    <h2>How it works</h2>
-    <p><strong>The task.</strong> Both probes estimate the same hidden phase φ. Each configuration is measured in two quadratures (X and Y), and the phase comes from atan2(⟨Y⟩, ⟨X⟩).</p>
-    <p><strong>Independent qubits.</strong> Each qubit starts in |+⟩ and picks up φ. N qubits give N independent samples per shot, so Δφ ≈ 1/√(N·shots).</p>
-    <p><strong>Entangled GHZ state.</strong> (|0…0⟩ + |1…1⟩)/√2 picks up Nφ. We un-entangle and read one qubit, so Δφ ≈ 1/(N·√shots).</p>
-    <p><strong>Noise.</strong> Every data qubit is coupled to its own environment qubit by a controlled-phase gate, and the environment is never measured. Each qubit keeps coherence c; the GHZ state keeps only cᴺ. The GHZ error grows like 1/(N·cᴺ), which is smallest at N ≈ −1/ln c.</p>
-    <p><strong>Uncertainty.</strong> Error bars come from binomial shot noise propagated through atan2 (the delta method). Dashed curves are the closed-form prediction.</p>
-    <p><strong>Backends.</strong> Every simulator on Qollab is free. IonQ backends accept one job per run, so the whole sweep is sent as a single job.</p>
-  </section>
-
   <footer class="footer">
-    <p>This effort is supported by Qollab &amp; IonQ.</p>
-    <p class="hint">MIT License. Built with Qiskit. See the project page for libraries and AI-assistance disclosure.</p>
+    <p>This tutorial and game was created during the Qollab x IonQ Hackathon 2026, and is supported by Qollab &amp; IonQ.</p>
+    <p class="hint">This work is distributed under the MIT License.</p>
+    <p class="hint">Copyright (c) 2026 Sabah Ud Din Ahmad</p>
   </footer>
 
   <div id="live-region" class="visually-hidden" aria-live="polite"></div>
