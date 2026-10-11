@@ -53,13 +53,13 @@ $$
 where $C \in [0, 1]$ is the remaining coherence, and $k = 1$ for independent qubits or $k = N$ for GHZ. The phase estimate is
 
 $$
-\hat{\phi} = \frac{1}{k}\,\operatorname{atan2}\big(\langle Y \rangle, \langle X \rangle\big),
+\hat{\phi} = \frac{1}{k}\,\text{atan2}\big(\langle Y \rangle, \langle X \rangle\big),
 $$
 
-where $\operatorname{atan2}$ is the two-argument arctangent, which returns the angle in the correct quadrant:
+where $\text{atan2}$ is the two-argument arctangent, which returns the angle in the correct quadrant:
 
 $$
-\operatorname{atan2}(y, x) =
+\text{atan2}(y, x) =
 \begin{cases}
 \arctan\!\left(\dfrac{y}{x}\right) & x > 0,\\[6pt]
 \arctan\!\left(\dfrac{y}{x}\right) + \pi & x < 0,\ y \ge 0,\\[6pt]
@@ -70,9 +70,9 @@ $$
 \end{cases}
 $$
 
-Because $C$ scales both quadratures equally, it cancels: $\operatorname{atan2}(C\sin\theta, C\cos\theta) = \theta$ for any $C > 0$. The estimate therefore needs no knowledge of how much coherence is left. Since $\operatorname{atan2}$ returns values in $(-\pi, \pi]$, the GHZ estimate is unambiguous only for $|N\phi| < \pi$.
+Because $C$ scales both quadratures equally, it cancels: $\text{atan2}(C\sin\theta, C\cos\theta) = \theta$ for any $C > 0$. The estimate therefore needs no knowledge of how much coherence is left. Since $\text{atan2}$ returns values in $(-\pi, \pi]$, the GHZ estimate is unambiguous only for $|N\phi| < \pi$.
 
-**Uncertainty.** Binomial shot noise, $\operatorname{Var}\langle X \rangle = \big(1 - \langle X \rangle^2\big)/m$, is propagated through $\operatorname{atan2}$ with the delta method. Dashed curves show the closed-form prediction
+**Uncertainty.** Binomial shot noise, $\text{Var}\langle X \rangle = \big(1 - \langle X \rangle^2\big)/m$, is propagated through $\text{atan2}$ with the delta method. Dashed curves show the closed-form prediction
 
 $$
 \Delta\phi = \frac{1}{k}\,\frac{\sqrt{1 - \tfrac{1}{2} C^2 \sin^2(2\theta)}}{C\sqrt{m}},
