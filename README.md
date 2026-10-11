@@ -1,167 +1,101 @@
 # Fragile Entanglement
 
-An interactive Qiskit experiment that teaches entanglement through measurement results, turns phase sensing into **Hulk Smash**, and compares independent and entangled probes in Explore.
+**Team Name:** QuanTech
 
-Start by measuring pairs, rather than learning state names. Compare independent particles, an entangled pair, and an ordinary matching mixture. Changing the measurement direction shows why matching alone is not the whole quantum story.
+**Team Members:** Sabah Ud Din Ahmad, Ali Karimi, Ali Mahani
 
-Theme: **Quantum Unlocked**
+**Theme:** Quantum Unlocked
 
-## What the animation does
+**GitHub Repository:** [sabahuddin-ahmad/fragile-entanglement](https://github.com/sabahuddin-ahmad/fragile-entanglement)
 
-Many quantum sensors work by letting qubits pick up a small phase $\phi$ and then reading it. The question this project explores is how precisely phase $\phi$ can be estimated with a fixed number of measurements, and how entanglement and noise change the answer.
+## What is it?
 
-It compares two ways of estimating the same hidden phase:
+Fragile Entanglement is an interactive tutorial and game **built with Qiskit** that teaches entanglement through quantum measurement results. Learners compare independent and entangled qubits, use their measurements to guide Hulk in **Hulk Smash**, and explore when entanglement improves phase estimation and when noise removes that advantage.
 
-- **Independent qubits.** $N$ qubits, each reading phase $\phi$ on its own. In the ideal limit, uncertainty scales as $1/\sqrt{N}$ (the standard quantum limit).
-- **An entangled GHZ state.** The same $N$ qubits, entangled so the phase builds up $N$ times faster. In the ideal limit, uncertainty scales as $1/N$ (the Heisenberg limit).
+The experience has four views:
 
-Then we let it interact with the noisy environment. A noise slider couples every qubit to an environment qubit that is never measured. The entangled state loses coherence $N$ times faster, so beyond a certain size adding qubits makes it *worse*. The chart marks the best size of the entangled state for each noise level.
+- **Intro:** explains qubits, entanglement, and what the quantum experiment runs. Learn unlocks after results load successfully.
+- **Learn:** introduces one change at a time, comparing pair preparations and measurement settings before explaining phase and uncertainty.
+- **Hulk Smash:** choose Independent or Entangled sensors, then press SMASH. Hulk uses the chosen sensor’s measured phase estimate to correct his landing.
+- **Explore:** change noise and shots, compare uncertainty for one through six sensing qubits, inspect the data table, and view the circuits.
 
-## The problem we explore
+## What problem we explore and why it matters?
 
-"Entanglement makes quantum measurements more precise" is often stated and rarely shown. It also leaves out the catch: entanglement is fragile, and noise sets a limit on how much it helps. This animation makes both sides of the story visible, using real circuits whose results you can inspect.
+We built this tutorial to address a learning gap: explaining entanglement in words is not enough to show a beginner how quantum measurements work or why entanglement is useful. Learners need a clear path from a simple explanation to running circuits, interpreting their results, and seeing how noise changes what those results can tell us. Fragile Entanglement brings those steps together in one guided experience, with a game and interactive plots that connect the concepts to measurement precision.
 
-## How to run the animation
+### Some background
+Quantum sensors can detect small changes by encoding them as a **phase**, an angle within a repeating cycle. Reading that angle accurately matters for applications such as precision timing and magnetic-field sensing. This project studies the underlying measurement principle rather than modelling a particular instrument.
 
-This repository is prepared to run the animation on [Qollab](https://qollab.xyz/).
+Our question is: **with the same number of sensing qubits and shots, when does entanglement give a more precise phase reading?** The baseline is independently prepared qubits. The comparison uses an entangled GHZ state, which combines the response of several qubits into a stronger phase signal. Noise can weaken that shared signal faster than it weakens independent sensors.
 
-1. Upload the application files to a Qollab project and press **Run**.
-2. Select a backend in **Select QPU**. A simulator computes quantum circuit outcomes on a classical computer; a hardware backend measures physical qubits.
-3. Read **Intro**, then press **Run quantum experiment**. **Start learning** unlocks after results load successfully. One backend job runs 78 circuits, with 400 shots each: six pair experiments, 48 phase circuits for twelve Hulk rounds and two candidate preparations, and 24 circuits for the initial Explore sweep.
-4. Follow the views in order:
-   - **Learn:** three lessons. In lesson 1, reveal recorded pairs, compare measurement counts, and change one experimental setting at a time. Counts contain no shot order, so the reveal order is shuffled. Revealing does not submit another job.
-   - **Game — Hulk Smash:** choose three independent (unentangled) sensors or a three-qubit entangled GHZ team, then press SMASH. No hit/miss prediction is required. No reading or path is shown beforehand. Hulk compensates using the chosen circuit's phase estimate. A hit earns one point and lowers anger by one; a miss raises anger by three. Lose at anger 10; survive twelve rounds to win.
-   - **Explore:** change shots and noise, inspect independent and GHZ uncertainty plots, and request another sweep if the backend allows it. Dotted lines show theory; measured and stored results are labelled separately.
+## Who is this for?
 
-The game is a classical analogy powered by quantum measurement counts, not a simulation of Hulk's mechanics. An estimate within 0.05 radians of the hidden phase lands on target. Noise weakens the sensing signal; the hidden phase supplies the sideways push. A noisy reading can still get lucky.
+Students, teachers, and curious non-experts who want to understand entanglement by observing measurements rather than starting with equations. Intro explains what a qubit is; no prior Qiskit experience is needed to use the interface.
 
-Learn includes an ordinary matching mixture of 00 and 11 to explain why matching results alone do not establish entanglement. It is a teaching comparison, not a game option.
+Educators can use Learn to discuss why matching outcomes alone do not establish entanglement. Developers and researchers can use the small, inspectable circuits as a starting point for other noise models or sensing strategies.
 
-On IonQ, the page permits one backend job per Qollab run. Use **Run quantum experiment** first to populate all views. Loaded results remain interactive, and replay uses the same counts. To submit new measurements, press Qollab **Stop**, then **Run**. The Explore button alone submits a sweep and consumes that allowance without populating Learn or Game.
+## How the quantum part works?
 
-For the localhost preview and Python virtual environment, follow [SETUP.md](SETUP.md). Localhost uses labelled JavaScript mock results; Python tests execute real Qiskit circuits on a classical simulator. Actual Qollab/hardware execution must be checked in Qollab.
+The application combines **quantum circuit measurements** with **classical analysis and interaction**:
 
-**Upload files:** `index.html`, `main.js`, `main.css`, `requirements.txt`, `quantum/`, `ui/`, and `data/precomputed.json`. Keep the directory structure. Python uses the backend injected by Qollab and the JavaScript bridge calls `.callPromising(...)`.
+1. **Prepare and measure pairs.** Learn compares independently random qubits, an entangled Bell pair, and an ordinary random mixture of 00 and 11. Each preparation is measured in two settings, Z and X. The ordinary matching mixture and Bell pair agree in Z; only the ideal Bell pair retains perfect agreement in X. Hardware noise may introduce mismatches.
+2. **Build phase sensors.** Independent probes prepare each sensing qubit in its own superposition. GHZ probes prepare a coherent combination of all 0s and all 1s. A phase gate applies the same hidden phase to each sensing qubit; the GHZ state accumulates `N × phase`.
+3. **Introduce noise.** Each sensing qubit can couple to an unmeasured environment qubit. Ignoring the environment causes dephasing: the useful phase signal weakens. If one qubit retains coherence `c`, the GHZ signal retains `cᴺ`.
+4. **Estimate the angle from counts.** Two readout settings supply X and Y signal components. Classical Python code combines them using `atan2(Y, X)`, divided by N for GHZ, and estimates uncertainty from measurement statistics.
+5. **Use the results.** Learn reveals recorded pairs; Hulk Smash uses a selected phase estimate; Explore compares measured uncertainty with dotted theory curves.
 
-## How the animation works
+The initial experiment submits **one backend job containing 78 circuits**, each measured 400 times: six Learn circuits, 48 circuits covering twelve game rounds and two sensor choices, and 24 circuits for an initial Explore sweep. Both candidate sensors for each game round are measured in this batch; their readings stay hidden until the player commits. Each additional Explore sweep submits its 24 circuits in one job.
 
-**Circuits.** For each $N$ from $1$ to $6$ and each probe, two circuits are measured: one in the $X$ basis and one in the $Y$ basis.
+**Hulk Smash mapping:** the phase represents the target’s offset. Hulk compensates using the selected sensor’s estimate and hits if its error is at most 0.05 radians. A hit adds one point and reduces anger by one, with a floor of zero. A miss adds three anger; reaching ten ends the game. Survive twelve rounds to win. This landing rule is a classical game analogy powered by measurement results. Replaying uses the same recorded results.
 
-- **Independent:** $H \rightarrow P(\phi) \rightarrow$ readout, on every qubit.
-- **GHZ:** $H$ on qubit $0$ plus a CNOT chain $\rightarrow P(\phi)$ on every qubit (the state picks up $N\phi$) $\rightarrow$ undo the chain $\rightarrow$ read qubit $0$.
+## How do I run it?
 
-**Estimate.** The two bases give
+You can run this on Qollab.
 
-$$
-\langle X \rangle = C\cos\theta, \qquad \langle Y \rangle = C\sin\theta, \qquad \theta = k\phi,
-$$
+1. Press Qollab’s **Run** and select a simulator or hardware backend. A simulator calculates circuit outcomes on a classical computer; hardware measures physical qubits.
+2. Read **Intro**, then press **Run quantum experiment** in the page. Wait for **Results ready**.
+3. Press **Start learning**. The permanent Intro tab lets you return without losing your current lesson.
+4. Play **Hulk Smash**, then use **Explore** to compare settings. The **Show data table** switch sits below the chart summary.
 
-where $C \in [0, 1]$ is the remaining coherence, and $k = 1$ for independent qubits or $k = N$ for GHZ. The phase estimate is
+The app uses Qollab’s injected backend and calls Python through `.callPromising(...)`. It enforces one job per Qollab run for IonQ backends: run the Intro experiment first to populate all views. To request another job, **stop and restart** the project in Qollab. Loaded results remain usable between runs.
 
-$$
-\hat{\phi} = \frac{1}{k} \text{atan2}\big(\langle Y \rangle, \langle X \rangle\big),
-$$
+## How we meet the judging criteria
 
-where $\text{atan2}$ is the two-argument arctangent, which returns the angle in the correct quadrant:
+### Novelty and Creativity
 
-$$
-\text{atan2}(y, x) =
-\begin{cases}
-\arctan\left(\dfrac{y}{x}\right) & x > 0,\\[6pt]
-\arctan\left(\dfrac{y}{x}\right) + \pi & x < 0,\ y \ge 0,\\[6pt]
-\arctan\left(\dfrac{y}{x}\right) - \pi & x < 0,\ y < 0,\\[6pt]
-+\dfrac{\pi}{2} & x = 0,\ y > 0,\\[6pt]
--\dfrac{\pi}{2} & x = 0,\ y < 0,\\[6pt]
-\text{undefined} & x = 0,\ y = 0.
-\end{cases}
-$$
+Our contribution is educational: one measurement-driven experience connects entanglement, phase sensing, a game decision, and quantitative exploration. Learners first compare an entangled pair with ordinary matching across different measurement settings, then apply the sensing trade-off in Hulk Smash and inspect the same principles in Explore.
 
-Because $C$ scales both quadratures equally, it cancels: $\text{atan2}(C\sin\theta, C\cos\theta) = \theta$ for any $C > 0$. The estimate therefore needs no knowledge of how much coherence is left. Since $\text{atan2}$ returns values in $(-\pi, \pi]$, the GHZ estimate is unambiguous only for $|N\phi| < \pi$.
+The underlying Bell/GHZ circuits and phase-estimation techniques are established. The original contribution is their integration into a progressive tutorial and a game whose outcomes depend on circuit measurements, with all views populated by a single backend batch.
 
-**Uncertainty.** Binomial shot noise, $\text{Var}\langle X \rangle = \big(1 - \langle X \rangle^2\big)/m$, is propagated through $\text{atan2}$ with the delta method. Dotted curves show the closed-form prediction
+### Technical Execution
 
-$$
-\Delta\phi = \frac{1}{k}\,\frac{\sqrt{1 - \tfrac{1}{2} C^2 \sin^2(2\theta)}}{C\sqrt{m}},
-$$
+Local automated verification passes **31 Python tests and 19 JavaScript tests**. Checks cover circuit probabilities against exact statevectors, phase expectations against theory, real `BasicSimulator` results, single-job batching, count totals, invalid-input rejection, lesson unlocking and navigation, hidden game readings, scoring, anger limits, and replay.
 
-where $m$ is the number of independent samples per basis: $m = N \times \text{shots}$ for independent qubits, and $m = \text{shots}$ for GHZ.
+The comparison holds sensing-qubit counts and shots equal between probe choices. Explore displays measured and predicted uncertainty separately and provides a table alternative. The interface supports keyboard navigation, visible focus, light/dark themes, and reduced-motion preferences.
 
-**Noise.** Each data qubit $q$ has its own environment qubit $e$, coupled by $H(e)$, then $CP(\beta)(e, q)$, then $P(-\beta/2)(q)$. Tracing out $e$ leaves $q$ with coherence
+### Impact Potential
 
-$$
-c = \cos\!\left(\frac{\beta}{2}\right),
-$$
+Teachers can use the project for classroom demonstrations or guided laboratory exercises. Students can move from qualitative correlations to quantitative sensing without changing tools, while inspecting the counts behind each explanation.
 
-so independent qubits keep $C = c$, while a GHZ state keeps only $C = c^N$. The GHZ error then scales as
+The modular circuits also support extensions: partially entangled groups, correlated noise, alternative estimators, or comparisons with physical-backend measurements. Such extensions could turn the tutorial into a small teaching and benchmarking platform.
 
-$$
-\Delta\phi_{\text{GHZ}} \propto \frac{1}{N c^N},
-$$
+### Documentation Quality
 
-whose contrast-only envelope is smallest at
+Clear, step-by-step instructions are provided in this README and in the application itself. The README explains how to run the project on Qollab, load measurement results, and move through Learn, Hulk Smash, and Explore.
 
-$$
-N^\ast = -\frac{1}{\ln c}.
-$$
-
-**One job per submission.** The Learn/Game session combines 78 circuits into one job. An additional Explore sweep ($2$ probes $\times$ $6$ sizes $\times$ $2$ bases $= 24$ circuits, up to $12$ qubits) goes to the backend as a single job, so it also runs on IonQ.
-
-## Replicate or extend this work
-
-The repository is organised so the physics and the interface can be changed separately:
-
-| File | What it holds |
-|---|---|
-| `index.html`, `main.js`, `main.css`, `quantum/`, `ui/` | Application code and interface: chart, tour, game, accessibility helpers |
-| `quantum/circuits.py` | Circuit builders (probes, noise, readout) |
-| `quantum/estimate.py` | Counts → phase estimate and uncertainty |
-| `quantum/theory.py`, `ui/theory.js` | Closed-form predictions |
-| `quantum/experiment.py` | Entry points the page calls (JSON in, JSON out) |
-| `dev/` | Makes the local browser preview work |
-| `tests/` | Verifies the quantum calculations and circuits |
-| `tools/` | Regenerates stored results using Qiskit |
-| `data/precomputed.json` | Stored results for an instant first view |
-| `requirements.txt`, `README.md`, `LICENSE`, `SETUP.md`, `.gitignore` | Dependencies, documentation, licensing, and Git hygiene |
+Within the application, Intro defines the key terms and explains what runs when the experiment starts. Learn introduces one experimental change at a time, Hulk Smash explains the controls and scoring, and Explore labels the settings, plots, and data table. Readers can follow the instructions where they need them and return to Intro without losing their lesson progress.
 
 
-Ideas to extend in future:
+## Disclosures and credits
 
-- Partially entangled probes (GHZ blocks of size $k$).
-- Correlated noise (one environment shared by all qubits) to show the noise floor.
-- Real-hardware runs on IonQ Forte compared against the noise model.
-- Adaptive phase estimation over several rounds.
-
-## Accessibility
-
-- Every feature works by keyboard. Tabs follow the WAI-ARIA tabs pattern, and focus is always visible.
-- Chart series are told apart by marker shape, line style and direct labels as well as colour. Colours come from a colour-vision-deficiency-validated palette with separate light and dark values.
-- Every chart has a table alternative, and the game has text descriptions of the outcome and measurement results.
-- Status updates are announced to screen readers.
-- Respects reduced-motion and dark-mode settings, with 44 px touch targets. The layout works at phone width.
-
-## Judging summary
-
-- **Novelty:**
-- **Technical execution:**
-- **Impact:**
-- **Documentation:**
-
-## Disclosures
-
-- **Qiskit** (Apache 2.0): circuits, simulation, transpilation.
-- **Qollab runtime** and Qollab's provided backends, including IonQ simulators.
-- **AI assistance:** Used Claude for refining requirements and initial code and interface setup.
-- All code was written during the build window (Oct 9, 2026 5 PM MDT - Oct 11, 2026 5 PM MDT) as evident by the commit history of this GitHub repository.
-
-## Links
-
-- Demo video:
-- Code repository: https://github.com/sabahuddin-ahmad/fragile-entanglement
-
-## License
-
-This work is distributed under the MIT License. See `LICENSE`.
+- **Qiskit:** used for circuits, transpilation, simulation, and measurement results; licensed under Apache 2.0.
+- **Qollab and IonQ:** provide the hosting/runtime and selectable backends. Their names acknowledge the platform and hackathon support.
+- **AI assistance:** Claude assisted with initial requirements; OpenAI Codex assisted with subsequent code, interface, tests, and documentation revisions.
 
 ## Attribution
 
-This visualization was created during the Qollab x IonQ Hackathon 2026, and is supported by Qollab &amp; IonQ.
+This project was created during the Qollab x IonQ Hackathon 2026, and is supported by Qollab &amp; IonQ.
+
+## License
+
+This work is distributed under the MIT License. See [LICENSE](LICENSE).

@@ -12,6 +12,7 @@ import { renderChart, renderTable } from './ui/chart.js';
 import { initTabs, announce } from './ui/a11y.js';
 import { initLearn } from './ui/tour.js';
 import { initGame } from './ui/game.js';
+import { experimentError } from './ui/errors.js';
 import { optimalNGhz, expectedDphi } from './ui/theory.js';
 
 const COHERENCE_GRID = [1.0, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6];
@@ -177,7 +178,8 @@ $('run-session').addEventListener('click', async () => {
     $('session-status').textContent = 'Results ready';
     announce('Measurement results ready. Start Learn or play Hulk Smash.');
   } catch (err) {
-    $('session-status').textContent = `Experiment failed: ${err.message ?? err}. No new results were loaded.`;
+    console.error('Quantum experiment failed', err);
+    $('session-status').textContent = experimentError(err, state.info);
     announce($('session-status').textContent);
   }
 });
@@ -213,7 +215,8 @@ $('run-live').addEventListener('click', async () => {
     announce('Results ready');
     render();
   } catch (err) {
-    $('run-status').textContent = `Run failed: ${err.message ?? err}`;
+    console.error('Explore experiment failed', err);
+    $('run-status').textContent = experimentError(err, state.info);
     announce($('run-status').textContent);
   }
 });

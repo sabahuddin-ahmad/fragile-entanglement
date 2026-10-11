@@ -25,7 +25,7 @@ export function initGame(root, { goTo }) {
     $('commit').disabled = !session;
     if (session) {
       const c = session.game.rounds[round].coherence;
-      $('noise').textContent = `Wind / sensor noise: ${Math.round((1 - c) * 100)}% · coherence per qubit ${Math.round(c * 100)}%. The hidden push can be left or right.`;
+      $('noise').textContent = `Sensor noise: ${Math.round((1 - c) * 100)}% · coherence per qubit ${Math.round(c * 100)}%.`;
       $('status').textContent = 'Choose Independent or Entangled, then press SMASH. Hulk automatically corrects his jump using your chosen sensor. You cannot see the phase reading or landing in advance.';
     }
     scoreboard();
@@ -49,7 +49,7 @@ export function initGame(root, { goTo }) {
     $('stage').setAttribute('aria-label', outcome.landed ? 'Hulk landed on the target. SMASH! Hulk is happy.' : 'Hulk missed the target and is angry.');
     $('summary').textContent = outcome.landed ? 'SMASH! Hulk is happy. +1 point · anger −1.' : 'MISSED! Hulk is angry. Anger +3.';
     const error = Math.abs(current.phi - reading.phi_hat);
-    $('reading').textContent = `${NAMES[scheme]} estimated ${reading.phi_hat.toFixed(3)} rad; hidden push ${current.phi.toFixed(3)} rad. Error ${error.toFixed(3)} rad; target tolerance ±0.050 rad.`;
+    $('reading').textContent = `${NAMES[scheme]} estimated ${reading.phi_hat.toFixed(3)} rad; true target offset ${current.phi.toFixed(3)} rad. Error ${error.toFixed(3)} rad; target tolerance ±0.050 rad.`;
     $('lesson').textContent = reading.signal_lost
         ? 'The measured signal is too weak for a reliable angle. A numerical uncertainty can be misleading when the signal disappears.'
         : `Estimated phase uncertainty: ±${reading.dphi.toFixed(3)} rad (approximately one standard deviation). ${scheme === 'ghz' ? 'Entanglement magnifies the phase but is more fragile under this noise.' : 'Independent readings can be averaged without relying on one shared phase signal.'} A single result does not establish which sensor is best.`;

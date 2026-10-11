@@ -25,7 +25,7 @@ const LESSONS = [
     paragraphs: [
       'Repeated measurements do not give perfectly identical estimates. Phase uncertainty describes the statistical spread of those readings. An estimate of 0.20 ± 0.02 radians is more precise than 0.20 ± 0.10. The uncertainty is an approximate standard deviation, not a guarantee.',
       'Error is different: it is the distance between one estimate and the true angle. A sensor with large uncertainty can get lucky once. Noise usually weakens the signal and widens the spread; more shots usually reduce the statistical spread. A shot is one execution and measurement of a newly prepared circuit.',
-      'In Hulk Smash, the hidden phase becomes a sideways push. Choose which sensor he should trust given the displayed noise. He compensates with that sensor’s measured angle. He hits only if the estimate is close enough. You see the counts and reading after committing, with no predicted path to give the answer away.',
+      'In Hulk Smash, the phase represents the target’s offset. Choose which sensor he should trust given the displayed noise. He compensates with that sensor’s measured angle. He hits only if the estimate is close enough. You see the counts and reading after committing, with no predicted path to give the answer away.',
       'In Explore, compare phase uncertainty against the number of sensing qubits. Blue circles show independent probes; orange triangles show entangled GHZ probes. Each has a dotted theory curve. Change the shots or noise, then run a new sweep on the selected backend if its job allowance permits.',
       'The game uses a fixed team of three. Explore asks a broader question: when does a bigger entangled team help, and when does noise make a smaller team more useful?',
     ],

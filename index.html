@@ -164,7 +164,7 @@
       </g>
       <text data-game="smash" class="smash-word" x="560" y="110" text-anchor="middle" hidden>SMASH!</text>
     </svg>
-    <p class="wind-report" data-game="noise">Wind noise will appear after the experiment runs.</p>
+    <p class="wind-report" data-game="noise">Sensor noise will appear after the experiment runs.</p>
     <p class="hint">Noise here means how much of each qubit’s useful phase signal is lost. Every option uses the same number of sensing qubits and shots.</p>
     <fieldset class="hulk-choices" data-game="choices" disabled><legend>Choose what Hulk should use. Each choice uses 3 sensing qubits.</legend>
       <label><input type="radio" name="game-scheme" value="product" checked><strong>Independent (unentangled)</strong><span>Three independent sensors.</span></label>
@@ -175,7 +175,7 @@
     <div data-game="result" hidden><h3 data-game="summary"></h3><p data-game="reading"></p><p data-game="lesson"></p><details><summary>Inspect the recorded measurement counts</summary><pre data-game="counts"></pre></details><div class="row"><button type="button" class="primary" data-game="next">Next round</button><button type="button" data-game="explore">Compare sensors in Explore</button></div></div>
     <details class="quantum-source">
       <summary>How does the game connect to the experiment?</summary>
-      <p><strong>The hidden push is the phase we want to measure.</strong> In Learn, phase is a small angle that changes quantum measurement probabilities. Hulk Smash represents that angle as a sideways push. Hulk needs an accurate reading of the push to correct his jump.</p>
+      <p><strong>The target’s offset represents the phase we want to measure.</strong> In Learn, phase is a small angle that changes quantum measurement probabilities. In Hulk Smash, the sensor estimates the target’s offset so Hulk can adjust his jump and land on it.</p>
       <p><strong>Your choice selects the quantum sensor.</strong> Independent uses three unentangled sensing qubits and averages their readings. Entangled uses three qubits in a shared state that magnifies the phase signal. Both options use the same number of sensing qubits and shots. Entanglement can help when noise is low, but its shared signal is more fragile as noise increases.</p>
       <p><strong>Measurement results determine Hulk’s correction.</strong> Running the quantum experiment in Intro collects 0/1 counts from circuits measured in two settings. We combine these counts into a phase estimate for each sensor and round. When you press SMASH, Hulk automatically uses the estimate from your selected sensor. The reading stays hidden until you commit.</p>
       <p><strong>A close estimate lands on target.</strong> Hulk hits when the estimate differs from the true phase by at most 0.05 radians. A larger difference makes him miss. The result shows both values so you can see why he landed where he did.</p>
