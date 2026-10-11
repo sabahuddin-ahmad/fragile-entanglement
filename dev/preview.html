@@ -1,0 +1,35 @@
+<!doctype html>
+<!--
+  LOCAL PREVIEW ONLY. Mimics how Qollab hosts a JS project:
+  * injects ../index.html into <body>, loads ../main.css
+  * defines a global `backend`
+  * maps the Python module `quantum.experiment` to a JS mock via an import map
+
+  Run from the repo root:   python3 -m http.server 8000
+  Then open:                http://localhost:8000/dev/preview.html
+  Simulate IonQ's one-job rule: http://localhost:8000/dev/preview.html?ionq&backend=ionq_simulator
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fragile Entanglement — local preview</title>
+  <link rel="stylesheet" href="../main.css">
+  <script type="importmap">
+    { "imports": { "quantum.experiment": "./mock_experiment.js" } }
+  </script>
+  <style>
+    .preview-banner { font: 13px system-ui; background: #fff3cd; color: #3d2f00; padding: 6px 12px; text-align: center; }
+    body { margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">Local preview with mock results. Real quantum runs happen on Qollab.</div>
+  <script type="module">
+    globalThis.backend = { name: 'mock' };
+    const html = await (await fetch('../index.html')).text();
+    document.body.insertAdjacentHTML('beforeend', html);
+    await import('../main.js');
+  </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!-- Qollab inserts this inside the page body: no <html>/<head>/<body>, and <script> tags do not run. -->
+<div class="app">
+  <header class="masthead">
+    <p class="eyebrow">Quantum Unlocked · interactive explainer</p>
+    <h1>Fragile Entanglement</h1>
+    <p class="lede">Why GHZ states beat independent qubits at phase estimation, until noise sets an optimal size.</p>
+    <p class="backend" id="backend-status" role="status">Connecting to the selected backend…</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" id="tab-explore" data-tab="explore" aria-controls="panel-explore" aria-selected="true">Explore</button>
+    <button role="tab" id="tab-tour" data-tab="tour" aria-controls="panel-tour" aria-selected="false" tabindex="-1">Guided tour</button>
+    <button role="tab" id="tab-game" data-tab="game" aria-controls="panel-game" aria-selected="false" tabindex="-1">Phase Detective</button>
+    <button role="tab" id="tab-about" data-tab="about" aria-controls="panel-about" aria-selected="false" tabindex="-1">How it works</button>
+  </div>
+
+  <!-- ===================== GUIDED TOUR (sits above Explore and drives it) ===================== -->
+  <section id="panel-tour" role="tabpanel" aria-labelledby="tab-tour" class="panel tour" hidden>
+    <p class="tour-count" data-tour="count"></p>
+    <h2 data-tour="title" tabindex="-1"></h2>
+    <p data-tour="body"></p>
+    <div class="row">
+      <button type="button" data-tour="prev">Back</button>
+      <button type="button" class="primary" data-tour="next">Next</button>
+    </div>
+  </section>
+
+  <!-- ===================== EXPLORE ===================== -->
+  <section id="panel-explore" role="tabpanel" aria-labelledby="tab-explore" class="panel">
+    <div class="controls" aria-label="Experiment controls" role="group">
+      <div class="control">
+        <label for="noise">Environment noise</label>
+        <input id="noise" type="range" min="0" max="8" step="1" value="0" aria-describedby="noise-out">
+        <output id="noise-out" for="noise">Coherence per qubit: 100%</output>
+      </div>
+      <div class="control">
+        <label for="shots">Shots per circuit</label>
+        <select id="shots">
+          <option value="100">100</option>
+          <option value="400">400</option>
+          <option value="1600" selected>1600</option>
+        </select>
+      </div>
+      <div class="control">
+        <label class="check"><input id="show-theory" type="checkbox" checked> Show theory curves</label>
+      </div>
+      <div class="control">
+        <button type="button" id="run-live" class="primary">Run on selected backend</button>
+        <p id="run-status" class="hint" role="status"></p>
+      </div>
+    </div>
+
+    <figure class="chart-wrap" id="chart">
+      <figcaption>
+        <h2 id="chart-title">Independent vs entangled: phase uncertainty vs number of qubits</h2>
+        <p id="chart-desc" class="hint">Independent qubits (blue circles) and an entangled GHZ state (orange triangles) estimate the same hidden phase. Lower is better. Dashed lines are theory.</p>
+        <p id="data-source" class="hint"></p>
+      </figcaption>
+      <ul class="legend" aria-label="Legend">
+        <li><span class="swatch s-product" aria-hidden="true">●</span> Independent qubits</li>
+        <li><span class="swatch s-ghz" aria-hidden="true">▲</span> Entangled (GHZ)</li>
+        <li><span class="swatch theory" aria-hidden="true">┄</span> Theory</li>
+      </ul>
+      <div class="tooltip" hidden></div>
+    </figure>
+
+    <p id="insight" class="insight" aria-live="polite"></p>
+
+    <details class="table-view">
+      <summary>Show the data as a table</summary>
+      <table>
+        <caption>Measured and predicted phase uncertainty</caption>
+        <thead><tr><th scope="col">Probe</th><th scope="col">N</th><th scope="col">Δφ measured</th><th scope="col">Δφ theory</th><th scope="col">Estimate φ̂</th><th scope="col">Signal lost</th></tr></thead>
+        <tbody id="data-table"></tbody>
+      </table>
+    </details>
+
+    <section class="circuit-view" aria-labelledby="circuit-title">
+      <h2 id="circuit-title">Look inside a circuit</h2>
+      <div class="row" role="group" aria-label="Circuit to show">
+        <fieldset class="inline">
+          <legend>Probe</legend>
+          <label><input type="radio" name="circ-scheme" value="product"> Independent</label>
+          <label><input type="radio" name="circ-scheme" value="ghz" checked> Entangled (GHZ)</label>
+        </fieldset>
+        <label for="circ-n">Qubits</label>
+        <select id="circ-n"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select>
+      </div>
+      <p id="circuit-meta" class="hint"></p>
+      <pre id="circuit-text" tabindex="0" aria-label="Circuit diagram as text"></pre>
+      <ol id="circuit-steps" class="steps"></ol>
+    </section>
+  </section>
+
+  <!-- ===================== PHASE DETECTIVE ===================== -->
+  <section id="panel-game" role="tabpanel" aria-labelledby="tab-game" class="panel" hidden>
+    <h2 data-game="round" tabindex="-1"></h2>
+    <p data-game="noise"></p>
+    <p class="hint">A phase is hidden somewhere between −0.45 and 0.45 rad. You have 300 shots. Pick your probe.</p>
+    <div class="row">
+      <fieldset class="inline">
+        <legend>Probe</legend>
+        <label><input type="radio" name="game-scheme" value="product" checked> Independent qubits</label>
+        <label><input type="radio" name="game-scheme" value="ghz"> Entangled (GHZ)</label>
+      </fieldset>
+      <label for="game-n">Qubits</label>
+      <select id="game-n" data-game="n"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select>
+      <button type="button" class="primary" data-game="guess">Measure and guess</button>
+    </div>
+    <p data-game="status" class="hint" role="status"></p>
+    <div data-game="result" hidden>
+      <svg data-game="line" viewBox="0 0 600 90" role="img" class="numberline"></svg>
+      <p data-game="summary"></p>
+      <p data-game="best" class="hint"></p>
+      <button type="button" data-game="next">Next round</button>
+    </div>
+  </section>
+
+  <!-- ===================== HOW IT WORKS ===================== -->
+  <section id="panel-about" role="tabpanel" aria-labelledby="tab-about" class="panel prose" hidden>
+    <h2>How it works</h2>
+    <p><strong>The task.</strong> Both probes estimate the same hidden phase φ. Each configuration is measured in two quadratures (X and Y), and the phase comes from atan2(⟨Y⟩, ⟨X⟩).</p>
+    <p><strong>Independent qubits.</strong> Each qubit starts in |+⟩ and picks up φ. N qubits give N independent samples per shot, so Δφ ≈ 1/√(N·shots).</p>
+    <p><strong>Entangled GHZ state.</strong> (|0…0⟩ + |1…1⟩)/√2 picks up Nφ. We un-entangle and read one qubit, so Δφ ≈ 1/(N·√shots).</p>
+    <p><strong>Noise.</strong> Every data qubit is coupled to its own environment qubit by a controlled-phase gate, and the environment is never measured. Each qubit keeps coherence c; the GHZ state keeps only cᴺ. The GHZ error grows like 1/(N·cᴺ), which is smallest at N ≈ −1/ln c.</p>
+    <p><strong>Uncertainty.</strong> Error bars come from binomial shot noise propagated through atan2 (the delta method). Dashed curves are the closed-form prediction.</p>
+    <p><strong>Backends.</strong> Every simulator on Qollab is free. IonQ backends accept one job per run, so the whole sweep is sent as a single job.</p>
+  </section>
+
+  <footer class="footer">
+    <p>This effort is supported by Qollab &amp; IonQ.</p>
+    <p class="hint">MIT License. Built with Qiskit. See the project page for libraries and AI-assistance disclosure.</p>
+  </footer>
+
+  <div id="live-region" class="visually-hidden" aria-live="polite"></div>
+</div>
